@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Owner Dashboard — Shri Maha Maya Hotel</title>
+<style>
+  :root { --maroon:#5E1628; --maroon2:#7a1f34; --gold:#B98A3E; --ivory:#FAF6EC; --ink:#241a1e; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--ivory); color:var(--ink); }
+  header { background:linear-gradient(140deg,var(--maroon),var(--maroon2)); color:var(--ivory); padding:14px 18px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:5; }
+  header b { font-size:1.05rem; } header span { opacity:.8; font-size:.78rem; }
+  header button { margin-left:auto; }
+  main { max-width:1000px; margin:0 auto; padding:18px 14px 60px; }
+  .card { background:#fff; border:1px solid rgba(185,138,62,.35); border-radius:14px; padding:18px; margin-bottom:16px; box-shadow:0 10px 30px -18px rgba(20,8,12,.4); }
+  h1 { font-size:1.2rem; margin:0 0 10px; }
+  input, select, button { font:inherit; padding:10px 14px; border-radius:10px; border:1px solid rgba(185,138,62,.5); }
+  input { width:100%; margin-bottom:10px; background:var(--ivory); }
+  button { background:var(--maroon); color:var(--ivory); cursor:pointer; border-color:var(--maroon); }
+  button.ghost { background:#fff; color:var(--maroon); }
+  .stats { display:flex; gap:10px; flex-wrap:wrap; }
+  .stat { flex:1; min-width:110px; background:var(--ivory); border:1px dashed rgba(185,138,62,.5); border-radius:12px; padding:12px; text-align:center; }
+  .stat b { display:block; font-size:1.6rem; color:var(--maroon); }
+  table { width:100%; border-collapse:collapse; font-size:.86rem; }
+  th, td { text-align:left; padding:9px 8px; border-bottom:1px solid rgba(185,138,62,.25); vertical-align:top; }
+  th { font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--maroon); }
+  .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:.7rem; font-weight:700; }
+  .b-pending { background:#fdeaea; color:#a12626; } .b-contacted { background:#fff4dd; color:#8a6215; } .b-closed { background:#e6f4e6; color:#2c6e2c; }
+  .b-room { background:#efe6f7; color:#5b3a86; } .b-food { background:#e8f0e0; color:#4c6b2f; } .b-complaint { background:#fdeaea; color:#a12626; } .b-general { background:#e8eef4; color:#33566e; }
+  td pre { margin:0; white-space:pre-wrap; font:inherit; }
+  .rowacts { display:flex; gap:6px; flex-wrap:wrap; }
+  .rowacts button, .rowacts a { padding:6px 10px; font-size:.74rem; border-radius:8px; text-decoration:none; }
+  a.wa { background:#25D366; color:#fff; }
+  .muted { opacity:.7; font-size:.8rem; }
+  .hidden { display:none; }
+  .err { color:#a12626; font-size:.84rem; margin-top:6px; }
+  @media (max-width:640px){ table, thead, tbody, tr, td { display:block; } thead { display:none; } td { border:0; padding:3px 8px; } tr { border-bottom:2px solid rgba(185,138,62,.3); padding:8px 0; display:block; } }
+</style>
+</head>
+<body>
+<header>
+  <b>श्री महा माया — Owner Dashboard</b>
+  <span id="who"></span>
+  <button id="logout" class="ghost hidden">Logout</button>
+</header>
+<main>
+  <section class="card" id="loginbox">
+    <h1>Owner login</h1>
+    <input type="password" id="pw" placeholder="Password (OWNER_PASSWORD)" autocomplete="current-password">
+    <button id="login">Login</button>
+    <p class="err hidden" id="lerr"></p>
+    <p class="muted">Password server ke env-variable me set hota hai — kabhi code me nahi likhte.</p>
+  </section>
+
+  <section id="dash" class="hidden">
+    <div class="card">
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="card">
+      <h1>Aaj ki vacancy <span class="muted" id="avwhen"></span></h1>
+      <p class="muted">Maya (website bot) yahi numbers guest ko batati hai — billing app se milane tak roz subah update kar dijiye.</p>
+      <div class="stats">
+        <label class="stat">Standard AC khali<br><input type="number" id="av-standard" min="0" max="10" value="0"></label>
+        <label class="stat">Deluxe AC khali<br><input type="number" id="av-deluxe" min="0" max="10" value="0"></label>
+        <label class="stat">Family AC khali<br><input type="number" id="av-family" min="0" max="10" value="0"></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="avsave">Save vacancy</button>
+        <span class="muted" id="avmsg"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h1>Enquiries <span class="muted" id="count"></span></h1>
+      <p>
+        <select id="filter">
+          <option value="">All statuses</option><option value="pending">Pending</option>
+          <option value="contacted">Contacted</option><option value="closed">Closed</option>
+        </select>
+        <button class="ghost" id="refresh">Refresh</button>
+        <button class="ghost" id="csv">Export CSV</button>
+      </p>
+      <table><thead><tr><th>When</th><th>Type</th><th>Guest</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table>
+      <p class="muted" id="empty"></p>
+    </div>
+    <p class="muted">⚠️ Dashboard sirf aapke liye hai. Enquiry ka matlab booking CONFIRMED nahi — guest ko hotel call/WhatsApp par confirm karein.</p>
+  </section>
+</main>
+<script src="admin.js"></script>
+</body>
+</html>
